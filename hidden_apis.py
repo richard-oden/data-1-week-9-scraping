@@ -1,13 +1,30 @@
 import requests
 
-locations = requests.get('https://enterpriseservice.pullapart.com/Location').json()
+def get_json(url: str, params: dict):
+    response = requests.get(url, params=params)
 
-makes = requests.get('https://inventoryservice.pullapart.com/Make').json()
+    if not response.ok or 'json' not in response.headers['content-type']:
+        return None
 
-models = requests.get('https://inventoryservice.pullapart.com/Model',
-    params={'makeID': 21}).json()
+    return response.json()
 
-cars = requests.post('https://inventoryservice.pullapart.com/Vehicle/Search', 
-    json={'Locations':[8],'MakeID':21,'Years':[],'Models':[195]}).json()
+def post_json(url: str, json: dict):
+    response = requests.post(url, json=json)
 
-print(cars)
+    if not response.ok or 'json' not in response.headers['content-type']:
+        return None
+
+    return response.json()
+
+def get_locations():
+    return get_json('https://enterpriseservice.pullapart.com/Location')
+
+def get_makes():
+    return get_json('https://inventoryservice.pullapart.com/Make')
+
+def get_models(make_id: int):
+    return get_json('https://inventoryservice.pullapart.com/Model', {'makeID': make_id})
+
+def get_vehicles(location_ids: list[int], make_id: int, years: list[int], model_ids: list[int]):
+    return post_json('https://inventoryservice.pullapart.com/Vehicle/Search', 
+        {'Locations': location_ids, 'MakeID': make_id, 'Years': years, 'Models': model_ids})
